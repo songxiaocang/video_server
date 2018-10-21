@@ -24,7 +24,7 @@ func (w *Worker) startWorker() {
 }
 
 func Start() {
-	r := NewRunner(30, false, clearVidRecDispatcher, clearCidRecExecutor)
-	w := NewWorker(30, r)
+	r := NewRunner(3, true, clearVidRecDispatcher, clearVidRecExecutor)
+	w := NewWorker(3, r)
 	go w.startWorker()
 }

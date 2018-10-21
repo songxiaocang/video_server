@@ -1,6 +1,7 @@
 package taskrunner
 
 import (
+	"errors"
 	"log"
 	"os"
 	"sync"
@@ -22,9 +23,13 @@ func clearVidRecDispatcher(dc dataChan) error {
 
 	ids, err := dbops.ReadVidRes(3)
 
-	if err != nil || len(ids) == 0 {
-		log.Printf("internal error: %v", err)
+	if err != nil {
+		log.Printf("clear video dispatcher error: %v", err)
 		return err
+	}
+
+	if len(ids) == 0 {
+		return errors.New("all task has finished: %v")
 	}
 
 	for _, id := range ids {
@@ -33,7 +38,7 @@ func clearVidRecDispatcher(dc dataChan) error {
 	return nil
 }
 
-func clearCidRecExecutor(dc dataChan) error {
+func clearVidRecExecutor(dc dataChan) error {
 
 	errMap := &sync.Map{}
 
@@ -42,16 +47,18 @@ func clearCidRecExecutor(dc dataChan) error {
 forLoop:
 	for {
 		select {
-		case dc <- dc:
+		case vid := <-dc:
 			go func(id interface{}) {
 				if err := dbops.DelVidRecs(id.(string)); err != nil {
 					errMap.Store(id, err)
+					return
 				}
 
 				if err := DelVideoById(id.(string)); err != nil {
 					errMap.Store(id, err)
+					return
 				}
-			}(dc)
+			}(vid)
 
 		default:
 			break forLoop

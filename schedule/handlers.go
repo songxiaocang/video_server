@@ -8,7 +8,7 @@ import (
 )
 
 func DelvidrecHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	vid := p.ByName("video_id")
+	vid := p.ByName("vid_id")
 
 	if len(vid) == 0 {
 		log.Printf("video_id is null: %v", vid)

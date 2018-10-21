@@ -32,7 +32,7 @@ func ReadVidRes(count int) ([]string, error) {
 }
 
 func DelVidRecs(vid string) error {
-	stmtDel, e := dbConn.Prepare("DEL FROM video_del_rec WHERE video_id=?")
+	stmtDel, e := dbConn.Prepare("DELETE FROM video_del_rec WHERE video_id=?")
 	if e != nil {
 		log.Printf("del video_del_rec error: %v", e)
 		return e
