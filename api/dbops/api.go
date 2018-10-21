@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 	"log"
 	"time"
-	"../defs"
-	"../utils"
+	"video_server/api/defs"
+	"video_server/api/utils"
 )
 
 func openConn() *sql.DB {
@@ -86,7 +86,6 @@ func AddVideoInfo(authorId int, name string) (*defs.VideoInfo, error) {
 
 	_, err = dbConn.Exec(addSql, uuid, authorId, name, formatTime)
 
-
 	if err != nil {
 		log.Printf("insert video_info error: %s", err)
 		return nil, err
@@ -100,45 +99,45 @@ func AddVideoInfo(authorId int, name string) (*defs.VideoInfo, error) {
 func GetVideoInfo(vid string) (*defs.VideoInfo, error) {
 	selectSql := "SELECT author_id,name,display_ctime FROM video_info WHERE id=?"
 	stmtOut, e := dbConn.Prepare(selectSql)
-	if e!=nil {
-		log.Printf("select video_info error: %v",e)
-		return nil,e
+	if e != nil {
+		log.Printf("select video_info error: %v", e)
+		return nil, e
 	}
 
 	var (
-		authorId int
-		name string
+		authorId     int
+		name         string
 		displayCtime string
 	)
 	err := dbConn.QueryRow(selectSql, vid).Scan(&authorId, &name, &displayCtime)
-	if err!=nil && err != sql.ErrNoRows{
-		log.Printf("select video_info error: %v",err)
-		return nil,err
+	if err != nil && err != sql.ErrNoRows {
+		log.Printf("select video_info error: %v", err)
+		return nil, err
 	}
 
 	if err == sql.ErrNoRows {
 		log.Printf("none video_info error : %v", err)
-		return nil,nil
+		return nil, nil
 	}
-	res := &defs.VideoInfo{Id:vid,AuthorId:authorId,Name:name,DisplayCtime:displayCtime}
+	res := &defs.VideoInfo{Id: vid, AuthorId: authorId, Name: name, DisplayCtime: displayCtime}
 
 	defer stmtOut.Close()
 
-	return res,nil
+	return res, nil
 
 }
 
-func DelVideoInfo(vid string) error{
+func DelVideoInfo(vid string) error {
 	delSql := "DELETE FROM video_info WHERE id=?"
 	stmtDel, e := dbConn.Prepare(delSql)
-	if e!=nil {
-		log.Printf("del video_info error: %v",e)
+	if e != nil {
+		log.Printf("del video_info error: %v", e)
 		return e
 	}
 
 	_, err := dbConn.Exec(delSql, vid)
-	if err!=nil {
-		log.Printf("del video_info error: %v",err)
+	if err != nil {
+		log.Printf("del video_info error: %v", err)
 		return err
 	}
 
@@ -147,24 +146,23 @@ func DelVideoInfo(vid string) error{
 	return nil
 }
 
-
 //comments
 
-func AddComment(vid string,authorId string,content string) error{
+func AddComment(vid string, authorId string, content string) error {
 	addSql := "INSERT INTO comments(id,video_id,author_id,content) VALUES(?,?,?,?)"
 	stmtIns, e := dbConn.Prepare(addSql)
-	if e!=nil {
-		log.Printf("insert comments error: %s",e)
+	if e != nil {
+		log.Printf("insert comments error: %s", e)
 		return e
 	}
 	uuids, err := uuid.NewUUID()
-	if err!=nil {
-		log.Printf("insert comments error: %s",e)
+	if err != nil {
+		log.Printf("insert comments error: %s", e)
 		return e
 	}
 	_, err = dbConn.Exec(addSql, uuids, vid, authorId, content)
-	if  err!=nil{
-		log.Printf("insert comments error: %s",e)
+	if err != nil {
+		log.Printf("insert comments error: %s", e)
 		return err
 	}
 
@@ -172,41 +170,41 @@ func AddComment(vid string,authorId string,content string) error{
 	return nil
 }
 
-func ListComments(vid string, from,to int) ([] *defs.Comment,error){
+func ListComments(vid string, from, to int) ([]*defs.Comment, error) {
 	selectAllSql := `SELECT comments.id,users.login_name,comments.content FROM comments INNER JOIN 
 users ON comments.author_id=users.id WHERE comments.video_id=? and comments.time>FROM_UNIXTIME(?) and comments.time<=FROM_UNIXTIME(?)`
 
 	stmtOut, e := dbConn.Prepare(selectAllSql)
-	if e!=nil {
-		log.Printf("selectAll comments error: %s",e)
-		return nil,e
+	if e != nil {
+		log.Printf("selectAll comments error: %s", e)
+		return nil, e
 	}
 
 	rows, err := dbConn.Query(selectAllSql, vid, from, to)
-	if err!=nil  {
-		log.Printf("selectAll comments error: %s",e)
-		return nil,e
+	if err != nil {
+		log.Printf("selectAll comments error: %s", e)
+		return nil, e
 	}
 
 	var (
-		id string
-		author string
+		id      string
+		author  string
 		content string
 	)
 
-	var comments [] *defs.Comment
+	var comments []*defs.Comment
 
 	if rows.Next() {
 		err := rows.Scan(&id, &author, &content)
-		if err !=nil {
-			log.Printf("selectAll comments error: %s",e)
-			return nil,err
+		if err != nil {
+			log.Printf("selectAll comments error: %s", e)
+			return nil, err
 		}
-		comment := &defs.Comment{Id:id,VideoId:vid,Author:author,Content:content}
-		comments = append(comments,comment)
+		comment := &defs.Comment{Id: id, VideoId: vid, Author: author, Content: content}
+		comments = append(comments, comment)
 
 	}
 
 	defer stmtOut.Close()
-	return comments,nil
+	return comments, nil
 }

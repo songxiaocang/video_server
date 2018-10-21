@@ -7,24 +7,24 @@ type Worker struct {
 	runner *Runner
 }
 
-func newWorker(interval time.Duration,r *Runner) *Worker{
+func NewWorker(interval time.Duration, r *Runner) *Worker {
 	return &Worker{
-		ticker:time.NewTicker(interval * time.Second),
-		runner:r,
+		ticker: time.NewTicker(interval * time.Second),
+		runner: r,
 	}
 }
 
-func(w *Worker) startWorker(){
-	for  {
+func (w *Worker) startWorker() {
+	for {
 		select {
-			case <-w.ticker.C:
-				go 	w.runner.startAll()
+		case <-w.ticker.C:
+			go w.runner.StartAll()
 		}
 	}
 }
 
-func Start(){
-	r := newRunner(30, false, clearVidRecDispatcher, clearCidRecExecutor)
-	w := newWorker(30, r)
+func Start() {
+	r := NewRunner(30, false, clearVidRecDispatcher, clearCidRecExecutor)
+	w := NewWorker(30, r)
 	go w.startWorker()
 }

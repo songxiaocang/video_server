@@ -2,18 +2,18 @@ package dbops
 
 import "log"
 
-func addVideoRec(vid string) error  {
+func AddVideoRec(vid string) error {
 	stmtIns, err := dbConn.Prepare("INSERT INTO video_del_rec(video_id) VALUES(?)")
-	if err!=nil {
-		log.Printf("insert error: %v",err)
+	if err != nil {
+		log.Printf("insert error: %v", err)
 		return err
 	}
 
 	_, err2 := stmtIns.Exec(vid)
-	if err2!=nil {
-		log.Printf("insert error: %v",err2)
+	if err2 != nil {
+		log.Printf("insert error: %v", err2)
 		return err2
 	}
 
-	return  nil
+	return nil
 }

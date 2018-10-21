@@ -7,23 +7,22 @@ import (
 	"time"
 )
 
-func TestRunner(t *testing.T){
-	d := func(dc dataChan) error{
-		for i:=0; i<30; i++ {
-			dc<-i
-			log.Printf("data sent: %v",i)
+func TestRunner(t *testing.T) {
+	d := func(dc dataChan) error {
+		for i := 0; i < 30; i++ {
+			dc <- i
+			log.Printf("data sent: %v", i)
 		}
 
 		return nil
 	}
 
-
-	e := func (dc dataChan) error{
-		forLoop:
+	e := func(dc dataChan) error {
+	forLoop:
 		for {
 			select {
-				case i:=<-dc:
-					log.Printf("data execute: %v",i)
+			case i := <-dc:
+				log.Printf("data execute: %v", i)
 			default:
 				break forLoop
 			}
@@ -32,11 +31,9 @@ func TestRunner(t *testing.T){
 		return errors.New("executor")
 	}
 
-	runner := newRunner(3, false, d, e)
-	go runner.startAll()
+	runner := NewRunner(30, false, d, e)
+	go runner.StartAll()
 
 	time.Sleep(3 * time.Second)
-
-
 
 }

@@ -4,71 +4,69 @@ import (
 	"log"
 	"os"
 	"sync"
+	"video_server/schedule/dbops"
 )
 
-func delVideoById(id string) error{
-	var videoPath =VIDEO_PATH+id
+func DelVideoById(id string) error {
+	var videoPath = VIDEO_PATH + id
 	err := os.Remove(videoPath)
-	if err !=nil{
-		log.Printf("del video from disk err: %v",err)
+	if err != nil {
+		log.Printf("del video from disk err: %v", err)
 		return err
 	}
 
 	return nil
 }
 
-func clearVidRecDispatcher(dc dataChan) error{
+func clearVidRecDispatcher(dc dataChan) error {
 
+	ids, err := dbops.ReadVidRes(3)
 
-	ids,err := readVidRes(3)
-
-	if err!=nil || len(ids) == 0 {
-		log.Printf("internal error: %v",err)
+	if err != nil || len(ids) == 0 {
+		log.Printf("internal error: %v", err)
 		return err
 	}
 
-	for _,id:= range ids {
+	for _, id := range ids {
 		dc <- id
 	}
 	return nil
 }
 
-
-func clearCidRecExecutor(dc dataChan) error{
+func clearCidRecExecutor(dc dataChan) error {
 
 	errMap := &sync.Map{}
 
 	var err error
 
-	forLoop:for {
-				select {
-					case dc<-dc:
-						go func(id interface{}) {
-							if err := delVidRecs(id.(string)); err!=nil{
-								errMap.Store(id,err)
-							}
-
-							if err := delVideoById(id.(string)); err!=nil{
-								errMap.Store(id,err)
-							}
-						}(dc)
-
-					default:
-						break forLoop
+forLoop:
+	for {
+		select {
+		case dc <- dc:
+			go func(id interface{}) {
+				if err := dbops.DelVidRecs(id.(string)); err != nil {
+					errMap.Store(id, err)
 				}
-			}
+
+				if err := DelVideoById(id.(string)); err != nil {
+					errMap.Store(id, err)
+				}
+			}(dc)
+
+		default:
+			break forLoop
+		}
+	}
 
 	errMap.Range(func(key, value interface{}) bool {
 		err = value.(error)
-		if err!=nil {
+		if err != nil {
 			return false
-		}else {
+		} else {
 			return true
 		}
 	})
 
-
 	return err
-
 
 }
