@@ -50,6 +50,30 @@ func GetUserCredential(loginUsername string) (string, error) {
 	return pwd, nil
 }
 
+func GetUser(loginUsername string) (*defs.User, error) {
+	selectSql := "SELECT * FROM users where login_name=?"
+	stmtOut, e := dbConn.Prepare(selectSql)
+	if e != nil {
+		log.Printf("%v", e)
+		return nil, e
+	}
+	var (
+		id        int
+		loginName string
+		pwd       string
+	)
+	err := dbConn.QueryRow(selectSql, loginUsername).Scan(&id, &loginName, &pwd)
+
+	if err != nil && err != sql.ErrNoRows {
+		log.Printf("%v", err)
+		return nil, err
+	}
+	user := &defs.User{Id: id, LoginName: loginName, Pwd: pwd}
+
+	defer stmtOut.Close()
+	return user, nil
+}
+
 func DeleteUser(LoginUsername string, pwd string) error {
 	deleteSql := "DELETE FROM users where login_name=?"
 	stmtDel, e := dbConn.Prepare(deleteSql)
@@ -127,6 +151,45 @@ func GetVideoInfo(vid string) (*defs.VideoInfo, error) {
 
 }
 
+func ListAllVideos(vid string, from, to int) ([]*defs.VideoInfo, error) {
+	selectAllSql := `SELECT * FROM video_info WHERE create_time>FROM_UNIXTIME(?) AND create_time<FROM_UNIXTIME(?) ORDER BY create_time DESC `
+
+	stmtOut, e := dbConn.Prepare(selectAllSql)
+	if e != nil {
+		log.Printf("selectAll videos error: %s", e)
+		return nil, e
+	}
+
+	rows, err := dbConn.Query(selectAllSql, vid, from, to)
+	if err != nil {
+		log.Printf("selectAll videos error: %s", e)
+		return nil, e
+	}
+
+	var (
+		id          string
+		author      int
+		name        string
+		displayTime string
+	)
+
+	var videos []*defs.VideoInfo
+
+	if rows.Next() {
+		err := rows.Scan(&id, &author, &name, &displayTime)
+		if err != nil {
+			log.Printf("selectAll videos error: %s", e)
+			return nil, err
+		}
+		video := &defs.VideoInfo{Id: id, AuthorId: author, Name: name, DisplayCtime: displayTime}
+		videos = append(videos, video)
+
+	}
+
+	defer stmtOut.Close()
+	return videos, nil
+}
+
 func DelVideoInfo(vid string) error {
 	delSql := "DELETE FROM video_info WHERE id=?"
 	stmtDel, e := dbConn.Prepare(delSql)
@@ -172,7 +235,8 @@ func AddComment(vid string, authorId string, content string) error {
 
 func ListComments(vid string, from, to int) ([]*defs.Comment, error) {
 	selectAllSql := `SELECT comments.id,users.login_name,comments.content FROM comments INNER JOIN 
-users ON comments.author_id=users.id WHERE comments.video_id=? and comments.time>FROM_UNIXTIME(?) and comments.time<=FROM_UNIXTIME(?)`
+users ON comments.author_id=users.id WHERE comments.video_id=? and comments.time>FROM_UNIXTIME(?) and comments.time<=FROM_UNIXTIME(?)
+ORDER  BY comments.time DESC `
 
 	stmtOut, e := dbConn.Prepare(selectAllSql)
 	if e != nil {

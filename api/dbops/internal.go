@@ -55,7 +55,7 @@ func RetrieveSession(sid string) (*defs.SimpleSession, error) {
 		return nil, err
 	}
 
-	simpleSession := &defs.SimpleSession{userName: userName, TTL: ttl}
+	simpleSession := &defs.SimpleSession{UserName: userName, TTL: ttl}
 
 	return simpleSession, nil
 }
@@ -79,7 +79,7 @@ func RetrieveAllSessions() (*sync.Map, error) {
 		ttlStr   string
 	)
 
-	var sessionMap *sync.Map
+	sessionMap := &sync.Map{}
 	if rows.Next() {
 		err := rows.Scan(&id, &userName, &ttlStr)
 		if err != nil {
@@ -93,7 +93,7 @@ func RetrieveAllSessions() (*sync.Map, error) {
 			return nil, err2
 		}
 
-		ss := &defs.SimpleSession{userName: userName, TTL: ttl}
+		ss := &defs.SimpleSession{UserName: userName, TTL: ttl}
 
 		sessionMap.Store(id, ss)
 	}

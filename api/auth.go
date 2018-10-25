@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"video_server/api/defs"
 	"video_server/api/session"
 )
 
@@ -26,10 +27,10 @@ func ValidUserSession(r *http.Request) bool {
 	return false
 }
 
-func ValidUser(r *http.Request) bool {
+func ValidUser(w http.ResponseWriter, r *http.Request) bool {
 	uname := r.Header.Get(HEADER_FIELD_UNAME)
 	if len(uname) == 0 {
-		sendErrorResponse(w, defs.ErrorNotAuthUser)
+		sendErrorResponse(w, &defs.ErrorNotAuthUser)
 		return false
 	}
 	return true
