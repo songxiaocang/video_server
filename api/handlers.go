@@ -170,6 +170,9 @@ func DeleteVideo(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
+	//向streamserver发起 del video的请求 ,异步执行
+	go utils.SendDelVideoRequest(vid)
+
 	sendNormalResponse(w, "delete success", 204)
 }
 

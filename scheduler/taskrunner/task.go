@@ -3,17 +3,27 @@ package taskrunner
 import (
 	"errors"
 	"log"
-	"os"
 	"sync"
-	"video_server/schedule/dbops"
+	"video_server/scheduler/dbops"
+	"video_server/scheduler/ossops"
 )
 
 func DelVideoById(id string) error {
-	var videoPath = VIDEO_PATH + id
-	err := os.Remove(videoPath)
-	if err != nil {
-		log.Printf("del video from disk err: %v", err)
-		return err
+	//var videoPath = VIDEO_PATH + id
+	//err := os.Remove(videoPath)
+	//if err != nil {
+	//	log.Printf("del video from disk err: %v", err)
+	//	return err
+	//}
+
+	//调用oss delete服务
+	fn := "/videos/" + id
+	bn := "sxc-videos2"
+
+	ok := ossops.DeleteObject(fn, bn)
+	if !ok {
+		log.Printf("delete video error，oss operation failed")
+		return errors.New("delete video error")
 	}
 
 	return nil

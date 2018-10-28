@@ -4,7 +4,10 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"log"
+	"net/http"
 	"strconv"
+	"sxc/config"
 	"time"
 )
 
@@ -24,4 +27,13 @@ func NewUUID() (string, error) {
 func GetCurrentTimestmapSec() int {
 	curTime, _ := strconv.Atoi(strconv.FormatInt(time.Now().UnixNano()/1000000000, 10))
 	return curTime
+}
+
+func SendDelVideoRequest(id string) {
+	addr := config.GetLBAddr() + ":9001"
+	url := "http://" + addr + "/del_video_rec/" + id
+	_, err := http.Get(url)
+	if err != nil {
+		log.Printf("sending delete video request error: %v", err)
+	}
 }

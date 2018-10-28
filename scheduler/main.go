@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/julienschmidt/httprouter"
 	"net/http"
-	"video_server/schedule/taskrunner"
+	"video_server/scheduler/taskrunner"
 )
 
 func RegisterHandlers() *httprouter.Router {
@@ -17,5 +17,5 @@ func RegisterHandlers() *httprouter.Router {
 func main() {
 	go taskrunner.Start()
 	handlers := RegisterHandlers()
-	http.ListenAndServe(":9001", handlers)
+	http.ListenAndServe(":9003", handlers)
 }

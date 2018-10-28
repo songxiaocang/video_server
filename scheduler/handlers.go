@@ -4,7 +4,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
-	"video_server/schedule/dbops"
+	"video_server/scheduler/dbops"
 )
 
 func DelvidrecHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {

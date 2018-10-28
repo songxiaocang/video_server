@@ -7,40 +7,39 @@ import (
 )
 
 type middlewareHandler struct {
-	r *httprouter.Router
+	r  *httprouter.Router
 	cl *connLimiter
 }
 
-func newMiddlewareHandler(router *httprouter.Router,cc int) http.Handler{
+func newMiddlewareHandler(router *httprouter.Router, cc int) http.Handler {
 	m := middlewareHandler{}
 	m.r = router
 	m.cl = newConnLimiter(cc)
 	return m
 }
 
-func (m middlewareHandler) ServeHTTP(w http.ResponseWriter,r *http.Request){
+func (m middlewareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !m.cl.getConn() {
 		log.Printf("too many request count")
-		sendErrorResponse(w,http.StatusBadRequest,"too many request count")
+		sendErrorResponse(w, http.StatusBadRequest, "too many request count")
 		return
 	}
 
-	m.r.ServeHTTP(w,r)
+	m.r.ServeHTTP(w, r)
 	defer m.cl.releaseConn()
 }
 
-func registerHandler() *httprouter.Router{
+func registerHandler() *httprouter.Router {
 	router := httprouter.New()
-	router.GET("/videos/:vid_id",streamHandler)
-	router.POST("/upload/:vid_id",uploadHandler)
-	router.GET("/testpage",testPageHandler)
+	router.GET("/videos/:vid_id", streamHandler)
+	router.POST("/upload/:vid_id", uploadHandler)
+	router.GET("/testpage", testPageHandler)
 
 	return router
 }
 
-
-func main(){
+func main() {
 	router := registerHandler()
 	mh := newMiddlewareHandler(router, 2)
-	http.ListenAndServe(":9000",mh)
+	http.ListenAndServe(":9002", mh)
 }
